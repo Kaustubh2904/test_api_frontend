@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input, textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #productList {
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .product-item {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Product Management</h1>
+
+        <form id="productForm">
+            <input type="text" id="name" placeholder="Product Name" required>
+            <input type="number" id="price" placeholder="Price" step="0.01" required>
+            <textarea id="description" placeholder="Description"></textarea>
+            <button type="submit">Create Product</button>
+        </form>
+
+        <div id="productList">
+            <h2>Products</h2>
+            <div id="products"></div>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        const productForm = document.getElementById('productForm');
+        const productsContainer = document.getElementById('products');
+
+        // Render products
+        async function renderProducts() {
+            const products = await getAllProducts();
+            productsContainer.innerHTML = '';
+
+            if (products) {
+                products.forEach(product => {
+                    const productElement = document.createElement('div');
+                    productElement.classList.add('product-item');
+                    productElement.innerHTML = `
+                        <div>
+                            <strong>${product.name}</strong> - $${product.price}
+                            <p>${product.description}</p>
+                        </div>
+                        <div>
+                            <button onclick="editProduct(${product.id})">Edit</button>
+                            <button onclick="deleteProduct(${product.id})">Delete</button>
+                        </div>
+                    `;
+                    productsContainer.appendChild(productElement);
+                });
+            }
+        }
+
+        // Create product
+        productForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const productData = {
+                name: document.getElementById('name').value,
+                price: parseFloat(document.getElementById('price').value),
+                description: document.getElementById('description').value
+            };
+
+            await createProduct(productData);
+            productForm.reset();
+            renderProducts();
+        });
+
+        // Edit product
+        async function editProduct(id) {
+            const newName = prompt('Enter new name');
+            const newPrice = parseFloat(prompt('Enter new price'));
+
+            if (newName && newPrice) {
+                await updateProduct(id, {
+                    name: newName,
+                    price: newPrice
+                });
+                renderProducts();
+            }
+        }
+
+        // Initial load
+        renderProducts();
+    </script>
+</body>
+</html>
